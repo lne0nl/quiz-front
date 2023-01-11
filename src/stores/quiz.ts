@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:8080", {
+const socket = io("https://quiz-3csv.onrender.com", {
   autoConnect: false,
 });
 

@@ -1,6 +1,6 @@
 const io = "socket.io/socket.io.js";
 
 export const useSocketIO = () => {
-  const socket = io("http://localhost:8080");
+  const socket = io("https://quiz-3csv.onrender.com");
   return { socket };
 };
