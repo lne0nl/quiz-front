@@ -35,7 +35,7 @@ socket.on("raz-buzz", () => {
   teams.value.find((o: Team) => {
     if (o.active === true) o.active = false;
   });
-})
+});
 
 socket.on("add-point", (teamName) => {
   teams.value.find((o: Team) => {
