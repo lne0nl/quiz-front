@@ -1,48 +1,72 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useQuizStore } from "@/stores/quiz";
+import { io } from "socket.io-client";
+import type { Team } from "@/interfaces";
 
-const store = useQuizStore();
+const socket = io(import.meta.env.VITE_BACK_URL, {
+  autoConnect: false,
+});
 
 let teamName = ref("");
 let connected = ref(false);
+let disableBuzzer = ref(false);
+let winner = ref(false);
 
 const fillTeamName = (e: Event) => {
   teamName.value = (e.target as HTMLInputElement).value;
 };
 
+socket.on("buzz-win", (winningTeam) => {
+  disableBuzzer.value = true;
+  if (teamName.value === winningTeam) winner.value = true;
+  console.log(teamName);
+});
+
+socket.on("raz-buzz", () => {
+  disableBuzzer.value = false;
+  winner.value = false;
+});
+
 const buzz = () => {
-  store.buzz(teamName.value);
+  socket.emit("buzz", teamName.value);
 };
 
 const signIn = (e: Event) => {
   e.preventDefault();
-  store.addTeam({
+  const team: Team = {
     name: teamName.value,
     score: 0,
     active: false,
-    connected: false,
-  });
+  };
   connected.value = true;
+  socket.connect();
+  socket.emit("add-team", team);
 };
 </script>
 
 <template>
   <div v-if="!connected" class="sign-in-wrapper">
     <form @submit="signIn" class="sign-in-form">
+      <div class="sign-in-todo">Choisissez un nom d'équipe</div>
       <input
         type="text"
         class="sign-in-input"
         placeholder="Nom d'équipe"
+        autofocus
         v-model="teamName"
         @keyup="fillTeamName"
       />
-      <button class="sign-in-button" type="submit">S'inscrire</button>
+      <button class="sign-in-button" type="submit">Valider</button>
     </form>
   </div>
 
   <div v-if="connected" class="buzz-wrapper">
-    <button class="buzz-button" @click="buzz">BUZZ !</button>
+    <button
+      :disabled="disableBuzzer"
+      class="buzz-button"
+      :class="{ 'buzz-button-winner': winner }"
+      @click="buzz"
+    ></button>
   </div>
 </template>
 
@@ -64,19 +88,35 @@ const signIn = (e: Event) => {
     transform: translate(-50%, -50%);
   }
 
+  &-todo {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 30px;
+    font-weight: 700;
+  }
+
   &-input {
     width: 100%;
     height: 50px;
     font-size: 30px;
-    padding: 10px;
+    padding: 30px 10px;
     text-align: center;
+    color: white;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: 2px solid white;
+    border-radius: 10px;
+    font-weight: 700;
   }
 
   &-button {
     width: 100%;
-    height: 40px;
-    margin-top: 10px;
+    height: 50px;
+    margin-top: 20px;
     font-size: 30px;
+    font-weight: 700;
+    background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
+    border: none;
+    border-radius: 10px;
   }
 }
 
@@ -90,13 +130,15 @@ const signIn = (e: Event) => {
   }
 
   &-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: inherit;
     top: 50%;
     left: 50%;
-    width: 250px;
-    height: 250px;
-    background: transparent;
-    background-color: rgb(155, 45, 45);
+    width: 270px;
+    height: 270px;
+    background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
     border: 10px solid black;
     border-radius: 50%;
     transform: translate(-50%, -50%);
@@ -104,9 +146,21 @@ const signIn = (e: Event) => {
     font-weight: 700;
 
     &:active {
-      background-color: rgb(97, 27, 27);
+      background: rgb(97, 27, 27);
       color: white;
     }
+
+    &-winner {
+      background: linear-gradient(51.05deg, #a0ee22 -57.1%, #5ebf1d 156.72%);
+    }
   }
+}
+
+.z-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 35px;
 }
 </style>
