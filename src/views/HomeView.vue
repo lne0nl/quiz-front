@@ -28,6 +28,11 @@ socket.on("raz-buzz", () => {
   winner.value = false;
 });
 
+socket.on("close", () => {
+  socket.disconnect();
+  // socket.emit("player-left", teamName.value);
+});
+
 const buzz = () => {
   socket.emit("buzz", teamName.value);
 };

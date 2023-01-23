@@ -16,6 +16,17 @@ socket.on("team-added", (teamsArray: Team[]) => {
   teams.value = teamsArray;
 });
 
+socket.on("remove-team", (teamName: string) => {
+  console.log("prout");
+  let index = 0;
+  teams.value.find((o: Team) => {
+    if (o.name === teamName) {
+      index = teams.value.indexOf(o);
+    }
+  });
+  teams.value.splice(index, 1);
+});
+
 socket.on("buzz-win", (winningTeam) => {
   teams.value.find((o: Team) => {
     if (o.name === winningTeam) o.active = true;
