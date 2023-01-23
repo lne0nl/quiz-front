@@ -6,9 +6,7 @@ const socket = io(import.meta.env.VITE_BACK_URL);
 
 let teams: Ref<Team[]> = ref([]);
 
-socket.on("team-added", (teamsArray: Team[]) => {
-  teams.value = teamsArray;
-});
+socket.on("team-added", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 socket.on("buzz-win", (winningTeam) => {
   teams.value.find((o: Team) => {
@@ -18,6 +16,7 @@ socket.on("buzz-win", (winningTeam) => {
 
 const razBuzz = () => {
   socket.emit("raz-buzz");
+
   teams.value.find((o: Team) => {
     if (o.active === true) o.active = false;
   });

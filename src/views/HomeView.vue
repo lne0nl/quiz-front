@@ -16,8 +16,9 @@ const fillTeamName = (e: Event) => {
   teamName.value = (e.target as HTMLInputElement).value;
 };
 
-socket.on("buzz-win", (winningTeam) => {
+socket.on("buzz-win", (winningTeam: string) => {
   disableBuzzer.value = true;
+
   if (teamName.value === winningTeam) winner.value = true;
   console.log(teamName);
 });
@@ -33,14 +34,16 @@ const buzz = () => {
 
 const signIn = (e: Event) => {
   e.preventDefault();
-  const team: Team = {
-    name: teamName.value,
-    score: 0,
-    active: false,
-  };
-  connected.value = true;
-  socket.connect();
-  socket.emit("add-team", team);
+  if (teamName.value) {
+    const team: Team = {
+      name: teamName.value,
+      score: 0,
+      active: false,
+    };
+    connected.value = true;
+    socket.connect();
+    socket.emit("add-team", team);
+  }
 };
 </script>
 
@@ -130,37 +133,39 @@ const signIn = (e: Event) => {
   }
 
   &-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: inherit;
     top: 50%;
     left: 50%;
     width: 270px;
     height: 270px;
-    background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
-    border: 10px solid black;
+
+    border: 3px solid #fff;
+    background: #e53030;
+    box-shadow: 0 -10px 0 3px darken(#e53030, 10%) inset,
+      0 10px 10px rgba(darken(#e53030, 40%), 0.17),
+      0 30px rgba(#fff, 0.25) inset;
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    font-size: 50px;
-    font-weight: 700;
 
-    &:active {
-      background: rgb(97, 27, 27);
-      color: white;
+    &:disabled {
+      background: gray;
+      box-shadow: 0 -10px 0 3px darken(gray, 10%) inset,
+        0 10px 10px rgba(darken(gray, 40%), 0.17), 0 30px rgba(#fff, 0.25) inset;
     }
 
     &-winner {
-      background: linear-gradient(51.05deg, #a0ee22 -57.1%, #5ebf1d 156.72%);
+      background: #78c200;
+      box-shadow: 0 -10px 0 3px darken(#78c200, 10%) inset,
+        0 10px 10px rgba(darken(#78c200, 40%), 0.17),
+        0 30px rgba(#fff, 0.25) inset;
+
+      &:disabled {
+        background: #78c200;
+        box-shadow: 0 -10px 0 3px darken(#78c200, 10%) inset,
+          0 10px 10px rgba(darken(#78c200, 40%), 0.17),
+          0 30px rgba(#fff, 0.25) inset;
+      }
     }
   }
-}
-
-.z-logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 35px;
-  height: 35px;
 }
 </style>
