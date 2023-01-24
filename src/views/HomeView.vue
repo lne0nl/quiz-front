@@ -31,6 +31,8 @@ socket.on("raz-buzz", () => {
 
 socket.on("close", () => socket.disconnect());
 
+socket.on("disconnect", () => (connected.value = false));
+
 const buzz = () => {
   socket.emit("buzz", teamName.value);
   sound.play();
@@ -68,7 +70,6 @@ const signIn = (e: Event) => {
   </div>
 
   <div v-if="connected" class="buzz-wrapper">
-    {{ teamName }}
     <button
       :disabled="disableBuzzer"
       class="buzz-button"
