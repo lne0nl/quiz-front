@@ -28,14 +28,9 @@ socket.on("raz-buzz", () => {
   winner.value = false;
 });
 
-socket.on("close", () => {
-  socket.disconnect();
-  // socket.emit("player-left", teamName.value);
-});
+socket.on("close", () => socket.disconnect());
 
-const buzz = () => {
-  socket.emit("buzz", teamName.value);
-};
+const buzz = () => socket.emit("buzz", teamName.value);
 
 const signIn = (e: Event) => {
   e.preventDefault();

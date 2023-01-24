@@ -17,8 +17,7 @@ socket.on("team-added", (teamsArray: Team[]) => {
 });
 
 socket.on("remove-team", (teamName: string) => {
-  console.log("prout");
-  let index = 0;
+  let index = -1;
   teams.value.find((o: Team) => {
     if (o.name === teamName) {
       index = teams.value.indexOf(o);
