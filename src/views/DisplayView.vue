@@ -25,18 +25,14 @@ socket.on("title", (name: string) => {
 socket.on("team-added", (teamsArray: Team[]) => {
   teams.value = teamsArray;
   const documentHeight = document.documentElement.clientHeight;
-  console.log("document height => ", documentHeight);
   const boardElement: HTMLElement | null =
     document.querySelector(".teams-list");
 
   if (boardElement) {
     const box = boardElement.getBoundingClientRect();
     if (box.height > documentHeight) {
-      console.log("trop grand");
       fontSizeBase -= 1;
       boardElement.style.fontSize = `${fontSizeBase}vw`;
-      console.log(fontSizeBase);
-      console.log(boardElement.style.fontSize);
     }
   }
 });
