@@ -2,10 +2,12 @@
 import { ref } from "vue";
 import { io } from "socket.io-client";
 import type { Team } from "@/interfaces";
+import buzzSound from "@/assets/sounds/buzz.wav";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
 });
+const sound = new Audio(buzzSound);
 
 let teamName = ref("");
 let connected = ref(false);
@@ -20,7 +22,6 @@ socket.on("buzz-win", (winningTeam: string) => {
   disableBuzzer.value = true;
 
   if (teamName.value === winningTeam) winner.value = true;
-  console.log(teamName);
 });
 
 socket.on("raz-buzz", () => {
@@ -30,7 +31,10 @@ socket.on("raz-buzz", () => {
 
 socket.on("close", () => socket.disconnect());
 
-const buzz = () => socket.emit("buzz", teamName.value);
+const buzz = () => {
+  socket.emit("buzz", teamName.value);
+  sound.play();
+};
 
 const signIn = (e: Event) => {
   e.preventDefault();
