@@ -68,6 +68,7 @@ const signIn = (e: Event) => {
   </div>
 
   <div v-if="connected" class="buzz-wrapper">
+    {{ teamName }}
     <button
       :disabled="disableBuzzer"
       class="buzz-button"

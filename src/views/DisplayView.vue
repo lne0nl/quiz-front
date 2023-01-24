@@ -7,6 +7,7 @@ const socket = io(import.meta.env.VITE_BACK_URL);
 
 let teams: Ref<Team[]> = ref([]);
 let quizName: Ref<string> = ref("");
+let fontSizeBase = 7;
 
 socket.on("raz", () => {
   teams.value = [];
@@ -23,6 +24,21 @@ socket.on("title", (name: string) => {
 
 socket.on("team-added", (teamsArray: Team[]) => {
   teams.value = teamsArray;
+  const documentHeight = document.documentElement.clientHeight;
+  console.log("document height => ", documentHeight);
+  const boardElement: HTMLElement | null =
+    document.querySelector(".teams-list");
+
+  if (boardElement) {
+    const box = boardElement.getBoundingClientRect();
+    if (box.height > documentHeight) {
+      console.log("trop grand");
+      fontSizeBase -= 1;
+      boardElement.style.fontSize = `${fontSizeBase}vw`;
+      console.log(fontSizeBase);
+      console.log(boardElement.style.fontSize);
+    }
+  }
 });
 
 socket.on("remove-team", (teamName: string) => {
@@ -62,7 +78,7 @@ socket.on("remove-point", (teamName) => {
 
 <template>
   <h1 class="quiz-name">{{ quizName }}</h1>
-  <ul v-if="teams.length" class="teams-list">
+  <ul v-if="teams.length" class="teams-list" style="font-size: 7vw">
     <li v-for="team in teams" :key="team.name" class="team">
       <div class="team-name" :class="{ active: team.active }">
         {{ team.name }}
@@ -80,24 +96,25 @@ socket.on("remove-point", (teamName) => {
   background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
 }
 
 .teams-list {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 80%;
-  max-height: 100%;
+  width: 100%;
   display: flex;
   justify-content: space-around;
+  align-items: center;
   flex-wrap: wrap;
+  padding-top: 140px;
   text-align: center;
   transform: translate(-50%, -50%);
 }
 
 .team {
   padding: 20px;
-  font-size: 60px;
 
   &-name {
     font-weight: 700;
