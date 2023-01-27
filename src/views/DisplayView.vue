@@ -2,12 +2,36 @@
 import type { Team } from "@/interfaces";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
+import { useRoute } from "vue-router";
 
-const socket = io(import.meta.env.VITE_BACK_URL);
+const socket = io(import.meta.env.VITE_BACK_URL, {
+  autoConnect: false,
+});
+const route = useRoute();
+const quizID = route.params.id;
+const origin = window.location.origin;
+const pathname = window.location.pathname;
+const URL = `${origin}${pathname}#/${quizID}`;
 
 let teams: Ref<Team[]> = ref([]);
 let quizName: Ref<string> = ref("");
+let QRCode: Ref<string> = ref("");
+let started: Ref<boolean> = ref(false);
+let showCode: Ref<boolean> = ref(false);
 let fontSizeBase = 7;
+
+socket.connect();
+
+socket.emit("display-quiz", quizID, URL);
+
+socket.on("quiz-infos", (quiz, quizCode) => {
+  quizName.value = quiz.name;
+  QRCode.value = quizCode;
+});
+
+socket.on("quiz-started", () => {
+  started.value = true;
+});
 
 socket.on("raz", () => {
   teams.value = [];
@@ -24,7 +48,7 @@ socket.on("title", (name: string) => {
 
 socket.on("team-added", (teamsArray: Team[]) => {
   teams.value = teamsArray;
-  const documentHeight = document.documentElement.clientHeight;
+  const documentHeight: number = document.documentElement.clientHeight;
   const boardElement: HTMLElement | null =
     document.querySelector(".teams-list");
 
@@ -35,6 +59,10 @@ socket.on("team-added", (teamsArray: Team[]) => {
       boardElement.style.fontSize = `${fontSizeBase}vw`;
     }
   }
+});
+
+socket.on("show-code", () => {
+  showCode.value = !showCode.value;
 });
 
 socket.on("remove-team", (teamName: string) => {
@@ -74,7 +102,25 @@ socket.on("remove-point", (teamName) => {
 
 <template>
   <h1 class="quiz-name">{{ quizName }}</h1>
-  <ul v-if="teams.length" class="teams-list" style="font-size: 7vw">
+  <div v-if="QRCode && !started" class="qr-code">
+    <img :src="QRCode" />
+    <ul v-if="teams.length && !started" class="teams-list-preview">
+      <li v-for="team in teams" :key="team.name" class="team-preview">
+        <div class="team-name-preview">{{ team.name }}</div>
+      </li>
+    </ul>
+  </div>
+  <!-- <ul v-if="teams.length && !started" class="teams-list teams-list-preview">
+    <li v-for="team in teams" :key="team.name" class="team">
+      <div class="team-name">
+        {{ team.name }}
+      </div>
+    </li>
+  </ul> -->
+  <div v-if="started && showCode" class="qr-code-overlay">
+    <img class="qr-code-img" :src="QRCode" />
+  </div>
+  <ul v-if="teams.length && started" class="teams-list" style="font-size: 7vw">
     <li v-for="team in teams" :key="team.name" class="team">
       <div class="team-name" :class="{ active: team.active }">
         {{ team.name }}
@@ -84,7 +130,7 @@ socket.on("remove-point", (teamName) => {
   </ul>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .quiz-name {
   text-align: center;
   font-size: 100px;
@@ -93,6 +139,27 @@ socket.on("remove-point", (teamName) => {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   -webkit-background-clip: text;
+}
+
+.qr-code {
+  text-align: center;
+
+  &-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    background-color: #121212;
+  }
+
+  &-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .teams-list {
@@ -107,6 +174,15 @@ socket.on("remove-point", (teamName) => {
   padding-top: 140px;
   text-align: center;
   transform: translate(-50%, -50%);
+
+  &-preview {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 40px;
+    padding: 0 10%;
+    font-size: 40px;
+  }
 }
 
 .team {
@@ -121,6 +197,11 @@ socket.on("remove-point", (teamName) => {
   &-score {
     font-size: 40px;
     font-weight: bold;
+  }
+
+  &-preview {
+    padding: 20px;
+    font-weight: 700;
   }
 }
 
