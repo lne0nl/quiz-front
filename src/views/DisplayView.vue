@@ -3,6 +3,13 @@ import type { Team } from "@/interfaces";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
+import buzzSound from "@/assets/sounds/buzzanswer.wav";
+import buzzGood from "@/assets/sounds/buzzgood.wav";
+import buzzBad from "@/assets/sounds/buzzbad.wav";
+
+const buzzAnswer = new Audio(buzzSound);
+const buzzWin = new Audio(buzzGood);
+const buzzLose = new Audio(buzzBad);
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
@@ -29,22 +36,16 @@ socket.on("quiz-infos", (quiz, quizCode) => {
   QRCode.value = quizCode;
 });
 
-socket.on("quiz-started", () => {
-  started.value = true;
-});
+socket.on("quiz-started", () => (started.value = true));
 
 socket.on("raz", () => {
   teams.value = [];
   quizName.value = "";
 });
 
-socket.on("quiz-name", (name: string) => {
-  quizName.value = name;
-});
+socket.on("quiz-name", (name: string) => (quizName.value = name));
 
-socket.on("title", (name: string) => {
-  quizName.value = name;
-});
+socket.on("title", (name: string) => (quizName.value = name));
 
 socket.on("team-added", (teamsArray: Team[]) => {
   teams.value = teamsArray;
@@ -61,9 +62,7 @@ socket.on("team-added", (teamsArray: Team[]) => {
   }
 });
 
-socket.on("show-code", () => {
-  showCode.value = !showCode.value;
-});
+socket.on("show-code", () => (showCode.value = !showCode.value));
 
 socket.on("remove-team", (teamName: string) => {
   let index = -1;
@@ -78,6 +77,7 @@ socket.on("remove-team", (teamName: string) => {
 socket.on("buzz-win", (winningTeam) => {
   teams.value.find((o: Team) => {
     if (o.name === winningTeam) o.active = true;
+    buzzAnswer.play();
   });
 });
 
@@ -87,47 +87,38 @@ socket.on("raz-buzz", () => {
   });
 });
 
-socket.on("add-point", (teamName) => {
-  teams.value.find((o: Team) => {
-    if (o.name === teamName) o.score += 1;
-  });
-});
+socket.on("add-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
-socket.on("remove-point", (teamName) => {
-  teams.value.find((o: Team) => {
-    if (o.name === teamName) o.score -= 1;
-  });
-});
+socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 </script>
 
 <template>
-  <h1 class="quiz-name">{{ quizName }}</h1>
-  <div v-if="QRCode && !started" class="qr-code">
-    <img :src="QRCode" />
-    <ul v-if="teams.length && !started" class="teams-list-preview">
-      <li v-for="team in teams" :key="team.name" class="team-preview">
-        <div class="team-name-preview">{{ team.name }}</div>
+  <div>
+    <h1 class="quiz-name">{{ quizName }}</h1>
+    <div v-if="QRCode && !started" class="qr-code">
+      <img :src="QRCode" />
+      <ul v-if="teams.length && !started" class="teams-list-preview">
+        <li v-for="team in teams" :key="team.name" class="team-preview">
+          <div class="team-name-preview">{{ team.name }}</div>
+        </li>
+      </ul>
+    </div>
+    <div v-if="started && showCode" class="qr-code-overlay">
+      <img class="qr-code-img" :src="QRCode" />
+    </div>
+    <ul
+      v-if="teams.length && started"
+      class="teams-list"
+      style="font-size: 7vw"
+    >
+      <li v-for="team in teams" :key="team.name" class="team">
+        <div class="team-name" :class="{ active: team.active }">
+          {{ team.name }}
+        </div>
+        <div class="team-score">{{ team.score }}</div>
       </li>
     </ul>
   </div>
-  <!-- <ul v-if="teams.length && !started" class="teams-list teams-list-preview">
-    <li v-for="team in teams" :key="team.name" class="team">
-      <div class="team-name">
-        {{ team.name }}
-      </div>
-    </li>
-  </ul> -->
-  <div v-if="started && showCode" class="qr-code-overlay">
-    <img class="qr-code-img" :src="QRCode" />
-  </div>
-  <ul v-if="teams.length && started" class="teams-list" style="font-size: 7vw">
-    <li v-for="team in teams" :key="team.name" class="team">
-      <div class="team-name" :class="{ active: team.active }">
-        {{ team.name }}
-      </div>
-      <div class="team-score">{{ team.score }}</div>
-    </li>
-  </ul>
 </template>
 
 <style lang="scss" scoped>

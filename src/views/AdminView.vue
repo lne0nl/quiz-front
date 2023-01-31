@@ -4,13 +4,13 @@ import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { nanoid } from "nanoid";
 import CopyPasteIcon from "@/assets/images/copy-icon.svg?component";
-// import { useRoute } from "vue-router";
+import { useRoute } from "vue-router";
+import router from "@/router";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
 });
-// const route = useRoute();
-// const quizID = route.params.id;
+const route = useRoute();
 
 let teams: Ref<Team[]> = ref([]);
 let quizName: Ref<string> = ref("");
@@ -18,25 +18,44 @@ let winningTeam: Ref<string> = ref("");
 let created: Ref<boolean> = ref(false);
 let displayURL: Ref<string> = ref("");
 let started: Ref<boolean> = ref(false);
-let quizID: string = "";
+let quizID: string | string[] = route.params.id || "";
 let showQR: Ref<boolean> = ref(false);
+let showTeams: Ref<boolean> = ref(false);
+
+if (quizID) {
+  socket.connect();
+  socket.emit("check-quiz", quizID);
+}
 
 const origin = window.location.origin;
 const pathname = window.location.pathname;
 const URL = `${origin}${pathname}${quizID}`;
+
+socket.on("check-quiz", (quiz) => {
+  if (quiz) {
+    started.value = quiz.started;
+    created.value = true;
+    quizName.value = quiz.name;
+    displayURL.value = `${origin}${pathname}#/display/${quizID}`;
+    teams.value = quiz.teams;
+    // Get quiz info and fill page. Check if quiz has started also.
+  } else {
+    // Redirect to admin home.
+    console.log("quiz doesn't exist");
+  }
+});
 
 const createQuiz = (e: Event) => {
   e.preventDefault();
   quizID = nanoid(5);
   socket.connect();
   socket.emit("create", { id: quizID, name: quizName.value });
+  router.push({ path: quizID });
   displayURL.value = `${URL}#/display/${quizID}`;
   created.value = true;
 };
 
-const copyURL = () => {
-  navigator.clipboard.writeText(displayURL.value);
-};
+const copyURL = () => navigator.clipboard.writeText(displayURL.value);
 
 const startQuiz = () => {
   started.value = true;
@@ -61,14 +80,9 @@ socket.on("raz", () => {
   quizName.value = "";
 });
 
-socket.on("title", (name: string) => {
-  quizName.value = name;
-});
+socket.on("title", (name: string) => (quizName.value = name));
 
-socket.on("team-added", (teamsArray: Team[]) => {
-  console.table(teamsArray);
-  teams.value = teamsArray;
-});
+socket.on("team-added", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 socket.on("remove-team", (teamName: string) => {
   let index = -1;
@@ -82,24 +96,27 @@ socket.on("remove-team", (teamName: string) => {
 
 socket.on("buzz-win", (team) => {
   winningTeam.value = team;
-  console.log(team);
   teams.value.find((o: Team) => {
     if (o.name === team) o.active = true;
   });
 });
 
-const addPoint = () => {
-  socket.emit("add-point", winningTeam.value);
-  winningTeam.value = "";
+const addPoint = (e: Event) => {
+  socket.emit("add-point", quizID, (e.target as HTMLInputElement).dataset.name);
+  if (winningTeam.value) winningTeam.value = "";
   razBuzz();
 };
 
-// const removePoint = (teamName: string) => {
-//   socket.emit("remove-point", teamName);
-//   teams.value.find((o: Team) => {
-//     if (o.name === teamName) o.score -= 1;
-//   });
-// };
+socket.on("add-point", (teamsArray: Team[]) => (teams.value = teamsArray));
+
+const removePoint = (e: Event) =>
+  socket.emit(
+    "remove-point",
+    quizID,
+    (e.target as HTMLInputElement).dataset.name
+  );
+
+socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 const razBuzz = () => {
   socket.emit("raz-buzz");
@@ -110,6 +127,8 @@ const raz = () => {
   socket.emit("raz-buzz");
   socket.emit("raz");
 };
+
+const toggleTeams = () => (showTeams.value = !showTeams.value);
 </script>
 
 <template>
@@ -137,10 +156,39 @@ const raz = () => {
     </div>
   </div>
 
+  <div v-if="showTeams && teams.length">
+    <button class="close-button" @click="toggleTeams">X</button>
+    <ul class="teams-list">
+      <li v-for="team in teams" :key="team.name" class="team">
+        <div class="team-name">{{ team.name }}</div>
+        <div class="team-score">{{ team.score }}</div>
+        <button
+          class="team-button"
+          type="button"
+          @click="removePoint"
+          :data-name="team.name"
+        >
+          -
+        </button>
+        <button
+          class="team-button"
+          type="button"
+          @click="addPoint"
+          :data-name="team.name"
+        >
+          +
+        </button>
+      </li>
+    </ul>
+  </div>
+
   <div v-if="created">
     <div class="quiz-tools">
       <button v-if="started" class="quiz-name-button" @click="toggleQRCode">
         {{ showQR ? "Cacher le QR Code" : "Afficher le QR Code" }}
+      </button>
+      <button v-if="started" class="quiz-name-button" @click="toggleTeams">
+        Afficher les équipes
       </button>
       <button class="quiz-name-button" @click="raz">Supprimer le quiz</button>
     </div>
@@ -156,23 +204,14 @@ const raz = () => {
     </div>
     <div class="quiz-winner-buttons">
       <button @click="razBuzz" class="quiz-winner-button no">❌</button>
-      <button @click="addPoint" class="quiz-winner-button yes">✔</button>
+      <button
+        @click="addPoint"
+        :data-name="winningTeam"
+        class="quiz-winner-button yes"
+      >
+        ✔
+      </button>
     </div>
-  </div>
-
-  <div>
-    <!-- <ul v-if="teams.length">
-      <li v-for="team in teams" :key="team.name">
-        <div :class="{ active: team.active }">{{ team.name }}</div>
-        <div class="score">
-          {{ team.score }}
-          <button @click="removePoint(team.name)">-1</button>
-          <button @click="addPoint(team.name)">+1</button>
-        </div>
-      </li>
-    </ul> -->
-
-    <!-- Liste des équipes -->
   </div>
 </template>
 
@@ -296,5 +335,60 @@ const raz = () => {
   left: 50%;
   width: 80%;
   transform: translateX(-50%);
+}
+
+.teams-list {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 50px;
+  font-size: 30px;
+  background-color: black;
+  z-index: 1;
+}
+
+.team {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  &-name {
+    font-weight: 700;
+  }
+
+  &-score {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  &-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 10px;
+    width: 40px;
+    height: 40px;
+    border: 2px solid white;
+    border-radius: 100%;
+    background: transparent;
+    color: white;
+    font-weight: 700;
+    font-size: 30px;
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  border: none;
+  color: white;
+  background: transparent;
+  font-weight: 700;
+  font-size: 30px;
 }
 </style>

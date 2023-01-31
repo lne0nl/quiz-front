@@ -2,7 +2,6 @@
 import { ref, type Ref } from "vue";
 import { io } from "socket.io-client";
 import type { Team } from "@/interfaces";
-import buzzSound from "@/assets/sounds/buzz.wav";
 import { useRoute } from "vue-router";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
@@ -10,8 +9,6 @@ const socket = io(import.meta.env.VITE_BACK_URL, {
 });
 const route = useRoute();
 const quizID = route.params.id;
-console.log(quizID);
-const sound = new Audio(buzzSound);
 
 let teamName: Ref<string> = ref("");
 let connected: Ref<boolean> = ref(false);
@@ -20,6 +17,8 @@ let winner: Ref<boolean> = ref(false);
 
 const fillTeamName = (e: Event) =>
   (teamName.value = (e.target as HTMLInputElement).value);
+
+socket.on("quiz-started", () => (disableBuzzer.value = false));
 
 socket.on("buzz-win", (winningTeam: string) => {
   disableBuzzer.value = true;
@@ -36,10 +35,7 @@ socket.on("close", () => socket.disconnect());
 
 socket.on("disconnect", () => (connected.value = false));
 
-const buzz = () => {
-  socket.emit("buzz", teamName.value);
-  sound.play();
-};
+const buzz = () => socket.emit("buzz", teamName.value);
 
 const signIn = (e: Event) => {
   e.preventDefault();
@@ -51,7 +47,7 @@ const signIn = (e: Event) => {
     };
     connected.value = true;
     socket.connect();
-    socket.emit("add-team", quizID, team);
+    socket.emit("add-team", quizID, team, "user");
   }
 };
 </script>
