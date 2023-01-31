@@ -101,9 +101,11 @@ socket.on("buzz-win", (team) => {
 });
 
 const addPoint = (e: Event) => {
+  const origin = (e.target as HTMLInputElement).dataset.origin;
   socket.emit("add-point", quizID, (e.target as HTMLInputElement).dataset.name);
   if (winningTeam.value) winningTeam.value = "";
-  razBuzz();
+  if (origin && origin === "win") socket.emit("win", quizID);
+  razBuzz(e);
 };
 
 socket.on("add-point", (teamsArray: Team[]) => (teams.value = teamsArray));
@@ -117,7 +119,9 @@ const removePoint = (e: Event) =>
 
 socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
-const razBuzz = () => {
+const razBuzz = (e: Event) => {
+  const origin = (e.target as HTMLInputElement).dataset.origin;
+  if (origin && origin === "lose") socket.emit("lose", quizID);
   socket.emit("raz-buzz");
   winningTeam.value = "";
 };
@@ -202,9 +206,12 @@ const toggleTeams = () => (showTeams.value = !showTeams.value);
       {{ winningTeam }}
     </div>
     <div class="quiz-winner-buttons">
-      <button @click="razBuzz" class="quiz-winner-button no">❌</button>
+      <button @click="razBuzz" data-origin="lose" class="quiz-winner-button no">
+        ❌
+      </button>
       <button
         @click="addPoint"
+        data-origin="win"
         :data-name="winningTeam"
         class="quiz-winner-button yes"
       >
