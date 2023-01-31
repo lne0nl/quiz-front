@@ -38,9 +38,8 @@ socket.on("check-quiz", (quiz) => {
     quizName.value = quiz.name;
     displayURL.value = `${origin}${pathname}#/display/${quizID}`;
     teams.value = quiz.teams;
-    // Get quiz info and fill page. Check if quiz has started also.
   } else {
-    router.push("admin");
+    router.push({ name: "admin" });
   }
 });
 
