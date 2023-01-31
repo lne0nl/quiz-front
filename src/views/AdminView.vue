@@ -2,19 +2,86 @@
 import type { Team } from "@/interfaces";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
-const socket = io(import.meta.env.VITE_BACK_URL);
+import { nanoid } from "nanoid";
+import CopyPasteIcon from "@/assets/images/copy-icon.svg?component";
+import { useRoute } from "vue-router";
+import router from "@/router";
+
+const socket = io(import.meta.env.VITE_BACK_URL, {
+  autoConnect: false,
+});
+const route = useRoute();
 
 let teams: Ref<Team[]> = ref([]);
 let quizName: Ref<string> = ref("");
+let winningTeam: Ref<string> = ref("");
+let created: Ref<boolean> = ref(false);
+let displayURL: Ref<string> = ref("");
+let started: Ref<boolean> = ref(false);
+let quizID: string | string[] = route.params.id || "";
+let showQR: Ref<boolean> = ref(false);
+let showTeams: Ref<boolean> = ref(false);
+
+if (quizID) {
+  socket.connect();
+  socket.emit("check-quiz", quizID);
+}
+
+const origin = window.location.origin;
+const pathname = window.location.pathname;
+const URL = `${origin}${pathname}${quizID}`;
+
+socket.on("check-quiz", (quiz) => {
+  if (quiz) {
+    started.value = quiz.started;
+    created.value = true;
+    quizName.value = quiz.name;
+    displayURL.value = `${origin}${pathname}#/display/${quizID}`;
+    teams.value = quiz.teams;
+    // Get quiz info and fill page. Check if quiz has started also.
+  } else {
+    router.push("admin");
+  }
+});
+
+const createQuiz = (e: Event) => {
+  e.preventDefault();
+  quizID = nanoid(5);
+  socket.connect();
+  socket.emit("create", { id: quizID, name: quizName.value });
+  router.push({ path: quizID });
+  displayURL.value = `${URL}#/display/${quizID}`;
+  created.value = true;
+};
+
+const copyURL = () => navigator.clipboard.writeText(displayURL.value);
+
+const startQuiz = () => {
+  started.value = true;
+  socket.emit("start-quiz", quizID, quizName.value);
+};
+
+const toggleQRCode = () => {
+  socket.emit("show-code", quizID);
+  showQR.value = !showQR.value;
+};
+
+socket.on("quiz-created", (ID) => {
+  console.log(`le quiz ${ID} a bien été créé`);
+});
+
+socket.on("join-room", () => {
+  console.log("a user has joined the room");
+});
 
 socket.on("raz", () => {
   teams.value = [];
   quizName.value = "";
 });
 
-socket.on("team-added", (teamsArray: Team[]) => {
-  teams.value = teamsArray;
-});
+socket.on("title", (name: string) => (quizName.value = name));
+
+socket.on("team-added", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 socket.on("remove-team", (teamName: string) => {
   let index = -1;
@@ -26,67 +93,301 @@ socket.on("remove-team", (teamName: string) => {
   teams.value.splice(index, 1);
 });
 
-socket.on("buzz-win", (winningTeam) => {
+socket.on("buzz-win", (team) => {
+  winningTeam.value = team;
   teams.value.find((o: Team) => {
-    if (o.name === winningTeam) o.active = true;
+    if (o.name === team) o.active = true;
   });
 });
 
-const validateName = (e: Event) => {
-  e.preventDefault();
-  socket.emit("quiz-name", quizName.value);
+const addPoint = (e: Event) => {
+  socket.emit("add-point", quizID, (e.target as HTMLInputElement).dataset.name);
+  if (winningTeam.value) winningTeam.value = "";
+  razBuzz();
 };
 
-const addPoint = (teamName: string) => {
-  socket.emit("add-point", teamName);
-  teams.value.find((o: Team) => {
-    if (o.name === teamName) o.score += 1;
-  });
-};
+socket.on("add-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
-const removePoint = (teamName: string) => {
-  socket.emit("remove-point", teamName);
-  teams.value.find((o: Team) => {
-    if (o.name === teamName) o.score -= 1;
-  });
-};
+const removePoint = (e: Event) =>
+  socket.emit(
+    "remove-point",
+    quizID,
+    (e.target as HTMLInputElement).dataset.name
+  );
+
+socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 const razBuzz = () => {
   socket.emit("raz-buzz");
-  teams.value.find((o: Team) => {
-    if (o.active === true) o.active = false;
-  });
+  winningTeam.value = "";
 };
 
 const raz = () => {
+  socket.emit("raz-buzz");
   socket.emit("raz");
 };
+
+const toggleTeams = () => (showTeams.value = !showTeams.value);
 </script>
 
 <template>
-  <form class="quizz-name" @submit="validateName">
-    <input type="text" v-model="quizName" />
-    <button type="submit">Valider</button>
+  <form v-if="!created && !started" class="quiz-name-form" @submit="createQuiz">
+    <input
+      type="text"
+      class="quiz-name-input"
+      placeholder="Donnez un nom au quiz"
+      autofocus
+      v-model="quizName"
+    />
+    <button class="quiz-name-button" type="submit">Valider</button>
   </form>
-  Liste des équipes
-  <ul v-if="teams.length">
-    <li v-for="team in teams" :key="team.name">
-      <div :class="{ active: team.active }">{{ team.name }}</div>
-      <div class="score">
-        {{ team.score }}
-        <button @click="removePoint(team.name)">-1</button>
-        <button @click="addPoint(team.name)">+1</button>
-      </div>
-    </li>
-  </ul>
 
-  <button @click="razBuzz">Réinitialiser les buzzers</button>
-  <button @click="raz">Réinitialiser le quiz</button>
+  <div v-if="created && !started">
+    <div class="share-display">
+      <h2>{{ quizName }} screen:</h2>
+      <a :href="displayURL" target="_blank">{{ displayURL }}</a>
+      <button class="copy-paste-button" type="button" @click="copyURL">
+        <CopyPasteIcon />
+      </button>
+      <button class="quiz-name-button" type="button" @click="startQuiz">
+        Démarrer le quiz
+      </button>
+    </div>
+  </div>
+
+  <div v-if="showTeams && teams.length">
+    <button class="close-button" @click="toggleTeams">X</button>
+    <ul class="teams-list">
+      <li v-for="team in teams" :key="team.name" class="team">
+        <div class="team-name">{{ team.name }}</div>
+        <div class="team-score">{{ team.score }}</div>
+        <button
+          class="team-button"
+          type="button"
+          @click="removePoint"
+          :data-name="team.name"
+        >
+          -
+        </button>
+        <button
+          class="team-button"
+          type="button"
+          @click="addPoint"
+          :data-name="team.name"
+        >
+          +
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div v-if="created">
+    <div class="quiz-tools">
+      <button v-if="started" class="quiz-name-button" @click="toggleQRCode">
+        {{ showQR ? "Cacher le QR Code" : "Afficher le QR Code" }}
+      </button>
+      <button v-if="started" class="quiz-name-button" @click="toggleTeams">
+        Afficher les équipes
+      </button>
+      <button class="quiz-name-button" @click="raz">Supprimer le quiz</button>
+    </div>
+  </div>
+
+  <div v-if="started" class="quiz-name">
+    {{ quizName }}
+  </div>
+
+  <div v-if="winningTeam && started" class="quiz-winner">
+    <div class="quiz-winner-name">
+      {{ winningTeam }}
+    </div>
+    <div class="quiz-winner-buttons">
+      <button @click="razBuzz" class="quiz-winner-button no">❌</button>
+      <button
+        @click="addPoint"
+        :data-name="winningTeam"
+        class="quiz-winner-button yes"
+      >
+        ✔
+      </button>
+    </div>
+  </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .active {
   background-color: green;
   color: white;
+}
+
+.quiz-name {
+  text-align: center;
+  font-size: 60px;
+  margin-top: 0;
+  background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+
+  &-input {
+    width: 100%;
+    height: 50px;
+    font-size: 30px;
+    padding: 30px 10px;
+    text-align: center;
+    color: white;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: 2px solid white;
+    border-radius: 10px;
+    font-weight: 700;
+
+    &::-webkit-input-placeholder {
+      color: rgba(255, 255, 255, 0.527);
+    }
+  }
+
+  &-button {
+    width: 100%;
+    height: 50px;
+    margin-top: 20px;
+    font-size: 30px;
+    font-weight: 700;
+    background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
+    border: none;
+    border-radius: 10px;
+  }
+}
+
+.quiz-winner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+
+  &-name {
+    text-align: center;
+    font-weight: 700;
+    font-size: 60px;
+    background: linear-gradient(51.05deg, #a0ee22 -57.1%, #479116 156.72%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+  }
+
+  &-buttons {
+    display: flex;
+    margin-top: 20px;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  &-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: 2px solid white;
+    height: 80px;
+    width: 80px;
+    border-radius: 100%;
+    padding: 0;
+
+    &.yes {
+      font-size: 80px;
+      background: linear-gradient(51.05deg, #a0ee22 -57.1%, #479116 156.72%);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+    }
+
+    &.no {
+      font-size: 45px;
+      color: red;
+    }
+  }
+}
+
+.share-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  font-size: 24px;
+  font-weight: 700;
+  transform: translate(-50%, -50%);
+}
+
+.copy-paste-button {
+  width: 30px;
+  height: 30px;
+  margin-left: 10px;
+  background: transparent;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.quiz-tools {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  width: 80%;
+  transform: translateX(-50%);
+}
+
+.teams-list {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 50px;
+  font-size: 30px;
+  background-color: black;
+  z-index: 1;
+}
+
+.team {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  &-name {
+    font-weight: 700;
+  }
+
+  &-score {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  &-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 10px;
+    width: 40px;
+    height: 40px;
+    border: 2px solid white;
+    border-radius: 100%;
+    background: transparent;
+    color: white;
+    font-weight: 700;
+    font-size: 30px;
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  border: none;
+  color: white;
+  background: transparent;
+  font-weight: 700;
+  font-size: 30px;
 }
 </style>

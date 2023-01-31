@@ -1,22 +1,39 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, type Ref } from "vue";
 import { io } from "socket.io-client";
 import type { Team } from "@/interfaces";
-import buzzSound from "@/assets/sounds/buzz.wav";
+import { useRoute } from "vue-router";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
 });
-const sound = new Audio(buzzSound);
+const route = useRoute();
+const quizID = route.params.id;
 
-let teamName = ref("");
-let connected = ref(false);
-let disableBuzzer = ref(false);
-let winner = ref(false);
+let teamName: Ref<string> = ref("");
+let connected: Ref<boolean> = ref(false);
+let disableBuzzer: Ref<boolean> = ref(true);
+let winner: Ref<boolean> = ref(false);
+let error: Ref<string> = ref("");
 
-const fillTeamName = (e: Event) => {
-  teamName.value = (e.target as HTMLInputElement).value;
-};
+if (!quizID) {
+  error.value = "Ce quiz n'existe pas";
+} else {
+  socket.connect();
+  socket.emit("check-quiz", quizID);
+}
+
+socket.on("check-quiz", (quiz) => {
+  if (!quiz) {
+    error.value = "Ce quiz n'existe pas";
+    socket.disconnect();
+  }
+});
+
+const fillTeamName = (e: Event) =>
+  (teamName.value = (e.target as HTMLInputElement).value);
+
+socket.on("quiz-started", () => (disableBuzzer.value = false));
 
 socket.on("buzz-win", (winningTeam: string) => {
   disableBuzzer.value = true;
@@ -33,10 +50,7 @@ socket.on("close", () => socket.disconnect());
 
 socket.on("disconnect", () => (connected.value = false));
 
-const buzz = () => {
-  socket.emit("buzz", teamName.value);
-  sound.play();
-};
+const buzz = () => socket.emit("buzz", teamName.value);
 
 const signIn = (e: Event) => {
   e.preventDefault();
@@ -48,34 +62,41 @@ const signIn = (e: Event) => {
     };
     connected.value = true;
     socket.connect();
-    socket.emit("add-team", team);
+    socket.emit("add-team", quizID, team, "user");
   }
 };
 </script>
 
 <template>
-  <div v-if="!connected" class="sign-in-wrapper">
-    <form @submit="signIn" class="sign-in-form">
-      <div class="sign-in-todo">Choisissez un nom d'équipe</div>
-      <input
-        type="text"
-        class="sign-in-input"
-        placeholder="Nom d'équipe"
-        autofocus
-        v-model="teamName"
-        @keyup="fillTeamName"
-      />
-      <button class="sign-in-button" type="submit">Valider</button>
-    </form>
-  </div>
+  <div>
+    <div v-if="error">
+      {{ error }}
+    </div>
+    <div v-if="!error">
+      <div v-if="!connected" class="sign-in-wrapper">
+        <form @submit="signIn" class="sign-in-form">
+          <div class="sign-in-todo">Choisissez un nom d'équipe</div>
+          <input
+            type="text"
+            class="sign-in-input"
+            placeholder="Nom d'équipe"
+            autofocus
+            v-model="teamName"
+            @keyup="fillTeamName"
+          />
+          <button class="sign-in-button" type="submit">Valider</button>
+        </form>
+      </div>
 
-  <div v-if="connected" class="buzz-wrapper">
-    <button
-      :disabled="disableBuzzer"
-      class="buzz-button"
-      :class="{ 'buzz-button-winner': winner }"
-      @click="buzz"
-    ></button>
+      <div v-if="connected" class="buzz-wrapper">
+        <button
+          :disabled="disableBuzzer"
+          class="buzz-button"
+          :class="{ 'buzz-button-winner': winner }"
+          @click="buzz"
+        ></button>
+      </div>
+    </div>
   </div>
 </template>
 
