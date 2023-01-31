@@ -93,6 +93,14 @@ socket.on("buzz-win", (winningTeam) => {
   });
 });
 
+socket.on("win", () => {
+  buzzWin.play();
+});
+
+socket.on("lose", () => {
+  buzzLose.play();
+});
+
 socket.on("raz-buzz", () => {
   teams.value.find((o: Team) => {
     if (o.active === true) o.active = false;
