@@ -17,7 +17,7 @@ const router = createRouter({
       component: AdminView,
     },
     {
-      path: "/display/:id",
+      path: "/display/:id?",
       name: "display",
       component: DisplayView,
       props: true,

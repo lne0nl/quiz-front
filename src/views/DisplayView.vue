@@ -26,13 +26,25 @@ let QRCode: Ref<string> = ref("");
 let started: Ref<boolean> = ref(false);
 let showCode: Ref<boolean> = ref(false);
 let fontSizeBase = 7;
+let error: Ref<string> = ref("");
 
-socket.connect();
+if (!quizID) {
+  error.value = "Ce quiz n'existe pas";
+} else {
+  socket.connect();
+  socket.emit("check-quiz", quizID);
+}
 
-socket.emit("display-quiz", quizID, URL);
+socket.on("check-quiz", (quiz) => {
+  if (quiz) {
+    socket.emit("display-quiz", quizID, URL);
+  } else error.value = "Ce quiz n'existe pas";
+});
 
 socket.on("quiz-infos", (quiz, quizCode) => {
   quizName.value = quiz.name;
+  started.value = quiz.started;
+  teams.value = quiz.teams;
   QRCode.value = quizCode;
 });
 
@@ -94,30 +106,35 @@ socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 <template>
   <div>
-    <h1 class="quiz-name">{{ quizName }}</h1>
-    <div v-if="QRCode && !started" class="qr-code">
-      <img :src="QRCode" />
-      <ul v-if="teams.length && !started" class="teams-list-preview">
-        <li v-for="team in teams" :key="team.name" class="team-preview">
-          <div class="team-name-preview">{{ team.name }}</div>
+    <div v-if="!error">
+      <h1 class="quiz-name">{{ quizName }}</h1>
+      <div v-if="QRCode && !started" class="qr-code">
+        <img :src="QRCode" />
+        <ul v-if="teams.length && !started" class="teams-list-preview">
+          <li v-for="team in teams" :key="team.name" class="team-preview">
+            <div class="team-name-preview">{{ team.name }}</div>
+          </li>
+        </ul>
+      </div>
+      <div v-if="started && showCode" class="qr-code-overlay">
+        <img class="qr-code-img" :src="QRCode" />
+      </div>
+      <ul
+        v-if="teams.length && started"
+        class="teams-list"
+        style="font-size: 7vw"
+      >
+        <li v-for="team in teams" :key="team.name" class="team">
+          <div class="team-name" :class="{ active: team.active }">
+            {{ team.name }}
+          </div>
+          <div class="team-score">{{ team.score }}</div>
         </li>
       </ul>
     </div>
-    <div v-if="started && showCode" class="qr-code-overlay">
-      <img class="qr-code-img" :src="QRCode" />
+    <div v-if="error">
+      {{ error }}
     </div>
-    <ul
-      v-if="teams.length && started"
-      class="teams-list"
-      style="font-size: 7vw"
-    >
-      <li v-for="team in teams" :key="team.name" class="team">
-        <div class="team-name" :class="{ active: team.active }">
-          {{ team.name }}
-        </div>
-        <div class="team-score">{{ team.score }}</div>
-      </li>
-    </ul>
   </div>
 </template>
 

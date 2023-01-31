@@ -40,8 +40,7 @@ socket.on("check-quiz", (quiz) => {
     teams.value = quiz.teams;
     // Get quiz info and fill page. Check if quiz has started also.
   } else {
-    // Redirect to admin home.
-    console.log("quiz doesn't exist");
+    router.push("admin");
   }
 });
 
