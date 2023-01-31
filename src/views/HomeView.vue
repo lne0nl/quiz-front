@@ -14,6 +14,21 @@ let teamName: Ref<string> = ref("");
 let connected: Ref<boolean> = ref(false);
 let disableBuzzer: Ref<boolean> = ref(true);
 let winner: Ref<boolean> = ref(false);
+let error: Ref<string> = ref("");
+
+if (!quizID) {
+  error.value = "Ce quiz n'existe pas";
+} else {
+  socket.connect();
+  socket.emit("check-quiz", quizID);
+}
+
+socket.on("check-quiz", (quiz) => {
+  if (!quiz) {
+    error.value = "Ce quiz n'existe pas";
+    socket.disconnect();
+  }
+});
 
 const fillTeamName = (e: Event) =>
   (teamName.value = (e.target as HTMLInputElement).value);
@@ -53,28 +68,35 @@ const signIn = (e: Event) => {
 </script>
 
 <template>
-  <div v-if="!connected" class="sign-in-wrapper">
-    <form @submit="signIn" class="sign-in-form">
-      <div class="sign-in-todo">Choisissez un nom d'équipe</div>
-      <input
-        type="text"
-        class="sign-in-input"
-        placeholder="Nom d'équipe"
-        autofocus
-        v-model="teamName"
-        @keyup="fillTeamName"
-      />
-      <button class="sign-in-button" type="submit">Valider</button>
-    </form>
-  </div>
+  <div>
+    <div v-if="error">
+      {{ error }}
+    </div>
+    <div v-if="!error">
+      <div v-if="!connected" class="sign-in-wrapper">
+        <form @submit="signIn" class="sign-in-form">
+          <div class="sign-in-todo">Choisissez un nom d'équipe</div>
+          <input
+            type="text"
+            class="sign-in-input"
+            placeholder="Nom d'équipe"
+            autofocus
+            v-model="teamName"
+            @keyup="fillTeamName"
+          />
+          <button class="sign-in-button" type="submit">Valider</button>
+        </form>
+      </div>
 
-  <div v-if="connected" class="buzz-wrapper">
-    <button
-      :disabled="disableBuzzer"
-      class="buzz-button"
-      :class="{ 'buzz-button-winner': winner }"
-      @click="buzz"
-    ></button>
+      <div v-if="connected" class="buzz-wrapper">
+        <button
+          :disabled="disableBuzzer"
+          class="buzz-button"
+          :class="{ 'buzz-button-winner': winner }"
+          @click="buzz"
+        ></button>
+      </div>
+    </div>
   </div>
 </template>
 
