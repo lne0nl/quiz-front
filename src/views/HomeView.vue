@@ -30,6 +30,8 @@ socket.on("check-quiz", (quiz) => {
   }
 });
 
+socket.on("toggle-buzz", (active) => (disableBuzzer.value = !active));
+
 const fillTeamName = (e: Event) =>
   (teamName.value = (e.target as HTMLInputElement).value);
 

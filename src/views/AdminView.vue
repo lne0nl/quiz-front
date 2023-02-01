@@ -21,6 +21,7 @@ let started: Ref<boolean> = ref(false);
 let quizID: string | string[] = route.params.id || "";
 let showQR: Ref<boolean> = ref(false);
 let showTeams: Ref<boolean> = ref(false);
+let activeBuzz: Ref<boolean> = ref(false);
 
 if (quizID) {
   socket.connect();
@@ -132,6 +133,11 @@ const raz = () => {
   socket.emit("raz");
 };
 
+const toggleBuzz = (active: boolean) => {
+  activeBuzz.value = active;
+  socket.emit("toggle-buzz", quizID, activeBuzz.value);
+};
+
 const toggleTeams = () => (showTeams.value = !showTeams.value);
 </script>
 
@@ -188,6 +194,14 @@ const toggleTeams = () => (showTeams.value = !showTeams.value);
 
   <div v-if="created">
     <div class="quiz-tools">
+      <div v-if="started">
+        <button class="quiz-name-button" @click="toggleBuzz(true)">
+          Activer les buzzers
+        </button>
+        <button class="quiz-name-button" @click="toggleBuzz(false)">
+          Désactiver les buzzers
+        </button>
+      </div>
       <button v-if="started" class="quiz-name-button" @click="toggleQRCode">
         {{ showQR ? "Cacher le QR Code" : "Afficher le QR Code" }}
       </button>
@@ -269,7 +283,7 @@ const toggleTeams = () => (showTeams.value = !showTeams.value);
 .quiz-winner {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 40%;
   width: 100%;
   transform: translate(-50%, -50%);
 

@@ -118,6 +118,9 @@ socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
       <h1 class="quiz-name">{{ quizName }}</h1>
       <div v-if="QRCode && !started" class="qr-code">
         <img :src="QRCode" />
+        <div>
+          <a :href="URL" target="_blank">{{ URL }}</a>
+        </div>
         <ul v-if="teams.length && !started" class="teams-list-preview">
           <li v-for="team in teams" :key="team.name" class="team-preview">
             <div class="team-name-preview">{{ team.name }}</div>
