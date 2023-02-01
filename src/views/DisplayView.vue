@@ -128,7 +128,12 @@ socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
         </ul>
       </div>
       <div v-if="started && showCode" class="qr-code-overlay">
-        <img class="qr-code-img" :src="QRCode" />
+        <div class="qr-code-img">
+          <img :src="QRCode" />
+          <div>
+            <a :href="URL" target="_blank">{{ URL }}</a>
+          </div>
+        </div>
       </div>
       <ul
         v-if="teams.length && started"
