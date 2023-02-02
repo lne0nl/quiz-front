@@ -122,7 +122,7 @@ socket.on("disconnect", () => {
 
 <template>
   <div>
-    <div v-if="finished" class="finished">
+    <div v-if="finished && !error" class="finished">
       Le quiz est terminé, merci pour votre participation !
     </div>
     <div v-if="!error">

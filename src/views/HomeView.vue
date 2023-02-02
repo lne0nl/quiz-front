@@ -15,6 +15,7 @@ let connected: Ref<boolean> = ref(false);
 let disableBuzzer: Ref<boolean> = ref(true);
 let winner: Ref<boolean> = ref(false);
 let error: Ref<string> = ref("");
+let finished: Ref<boolean> = ref(false);
 
 if (!quizID) {
   error.value = "Ce quiz n'existe pas";
@@ -50,6 +51,10 @@ socket.on("raz-buzz", () => {
 
 socket.on("close", () => socket.disconnect());
 
+socket.on("disconnect", () => {
+  finished.value = true;
+});
+
 socket.on("disconnect", () => (connected.value = false));
 
 const buzz = () => socket.emit("buzz", teamName.value, quizID);
@@ -74,7 +79,10 @@ const signIn = (e: Event) => {
     <div v-if="error" class="error">
       {{ error }}
     </div>
-    <div v-if="!error">
+    <div v-if="finished && !error" class="finished">
+      Le quiz est terminé, merci pour votre participation !
+    </div>
+    <div v-if="!error && !finished">
       <div v-if="!connected" class="sign-in-wrapper">
         <form @submit="signIn" class="sign-in-form">
           <div class="sign-in-todo">Choisissez un nom d'équipe</div>
@@ -90,7 +98,7 @@ const signIn = (e: Event) => {
         </form>
       </div>
 
-      <div v-if="connected" class="buzz-wrapper">
+      <div v-if="connected && !finished" class="buzz-wrapper">
         <button
           :disabled="disableBuzzer"
           class="buzz-button"
@@ -198,6 +206,7 @@ const signIn = (e: Event) => {
   }
 }
 
+.finished,
 .error {
   position: absolute;
   top: 50%;
