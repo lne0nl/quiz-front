@@ -66,14 +66,6 @@ const toggleQRCode = () => {
   showQR.value = !showQR.value;
 };
 
-socket.on("quiz-created", (ID) => {
-  console.log(`le quiz ${ID} a bien été créé`);
-});
-
-socket.on("join-room", () => {
-  console.log("a user has joined the room");
-});
-
 socket.on("raz", () => {
   teams.value = [];
   quizName.value = "";
@@ -128,10 +120,7 @@ const razBuzz = (e: Event) => {
   winningTeam.value = "";
 };
 
-const raz = () => {
-  console.log("quizID => ", quizID)
-  socket.emit("raz", quizID);
-}
+const raz = () => socket.emit("raz", quizID);
 
 const toggleBuzz = (active: boolean) => {
   activeBuzz.value = active;
