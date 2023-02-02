@@ -124,11 +124,14 @@ socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 const razBuzz = (e: Event) => {
   const origin = (e.target as HTMLInputElement).dataset.origin;
   if (origin && origin === "lose") socket.emit("lose", quizID);
-  socket.emit("raz-buzz");
+  socket.emit("raz-buzz", quizID);
   winningTeam.value = "";
 };
 
-const raz = () => socket.emit("raz", quizID);
+const raz = () => {
+  console.log("quizID => ", quizID)
+  socket.emit("raz", quizID);
+}
 
 const toggleBuzz = (active: boolean) => {
   activeBuzz.value = active;

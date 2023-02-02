@@ -56,8 +56,6 @@ socket.on("raz", () => {
   quizName.value = "";
 });
 
-socket.on("quiz-name", (name: string) => (quizName.value = name));
-
 socket.on("title", (name: string) => (quizName.value = name));
 
 socket.on("team-added", (teamsArray: Team[]) => {

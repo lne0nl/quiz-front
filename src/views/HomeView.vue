@@ -52,7 +52,7 @@ socket.on("close", () => socket.disconnect());
 
 socket.on("disconnect", () => (connected.value = false));
 
-const buzz = () => socket.emit("buzz", teamName.value);
+const buzz = () => socket.emit("buzz", teamName.value, quizID);
 
 const signIn = (e: Event) => {
   e.preventDefault();
