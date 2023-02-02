@@ -49,7 +49,7 @@ const createQuiz = (e: Event) => {
   quizID = nanoid(5);
   socket.connect();
   socket.emit("create", { id: quizID, name: quizName.value });
-  router.push({ path: quizID });
+  router.push({ path: `/admin/${quizID}` });
   displayURL.value = `${URL}#/display/${quizID}`;
   created.value = true;
 };
