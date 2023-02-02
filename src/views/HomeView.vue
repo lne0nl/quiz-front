@@ -71,7 +71,7 @@ const signIn = (e: Event) => {
 
 <template>
   <div>
-    <div v-if="error">
+    <div v-if="error" class="error">
       {{ error }}
     </div>
     <div v-if="!error">
@@ -196,5 +196,15 @@ const signIn = (e: Event) => {
       }
     }
   }
+}
+
+.error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 80px;
+  text-align: center;
 }
 </style>

@@ -128,10 +128,7 @@ const razBuzz = (e: Event) => {
   winningTeam.value = "";
 };
 
-const raz = () => {
-  socket.emit("raz-buzz");
-  socket.emit("raz");
-};
+const raz = () => socket.emit("raz", quizID);
 
 const toggleBuzz = (active: boolean) => {
   activeBuzz.value = active;
@@ -139,6 +136,19 @@ const toggleBuzz = (active: boolean) => {
 };
 
 const toggleTeams = () => (showTeams.value = !showTeams.value);
+
+socket.on("disconnect", () => {
+  created.value = false;
+  started.value = false;
+  teams.value = [];
+  quizName.value = "";
+  winningTeam.value = "";
+  displayURL.value = "";
+  showQR.value = false;
+  showTeams.value = false;
+  activeBuzz.value = false;
+  router.push({ name: "admin" });
+});
 </script>
 
 <template>

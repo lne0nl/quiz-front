@@ -27,6 +27,7 @@ let started: Ref<boolean> = ref(false);
 let showCode: Ref<boolean> = ref(false);
 let fontSizeBase = 7;
 let error: Ref<string> = ref("");
+let finished: Ref<boolean> = ref(false);
 
 if (!quizID) {
   error.value = "Ce quiz n'existe pas";
@@ -110,10 +111,22 @@ socket.on("raz-buzz", () => {
 socket.on("add-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 
 socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
+
+socket.on("disconnect", () => {
+  teams.value = [];
+  quizName.value = "";
+  QRCode.value = "";
+  started.value = false;
+  showCode.value = false;
+  finished.value = true;
+});
 </script>
 
 <template>
   <div>
+    <div v-if="finished" class="finished">
+      Le quiz est terminé, merci pour votre participation !
+    </div>
     <div v-if="!error">
       <h1 class="quiz-name">{{ quizName }}</h1>
       <div v-if="QRCode && !started" class="qr-code">
@@ -148,7 +161,7 @@ socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
         </li>
       </ul>
     </div>
-    <div v-if="error">
+    <div v-if="error" class="error">
       {{ error }}
     </div>
   </div>
@@ -232,5 +245,16 @@ socket.on("remove-point", (teamsArray: Team[]) => (teams.value = teamsArray));
 .active {
   background: linear-gradient(51.05deg, #a0ee22 -57.1%, #479116 156.72%);
   color: white;
+}
+
+.finished,
+.error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  font-size: 80px;
+  text-align: center;
 }
 </style>
