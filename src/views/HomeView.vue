@@ -213,7 +213,7 @@ const signIn = (e: Event) => {
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: 700;
-  font-size: 80px;
+  font-size: 60px;
   text-align: center;
 }
 </style>
