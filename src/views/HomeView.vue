@@ -3,6 +3,7 @@ import { ref, type Ref } from "vue";
 import { io } from "socket.io-client";
 import type { Team } from "@/interfaces";
 import { useRoute } from "vue-router";
+import { nanoid } from "nanoid";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
@@ -10,6 +11,12 @@ const socket = io(import.meta.env.VITE_BACK_URL, {
 const route = useRoute();
 const quizID = route.params.id;
 
+let team: Ref<Team> = ref({
+  id: "",
+  name: "",
+  score: 0,
+  active: false,
+});
 let teamName: Ref<string> = ref("");
 let connected: Ref<boolean> = ref(false);
 let disableBuzzer: Ref<boolean> = ref(true);
@@ -57,19 +64,20 @@ socket.on("disconnect", () => {
 
 socket.on("disconnect", () => (connected.value = false));
 
-const buzz = () => socket.emit("buzz", teamName.value, quizID);
+const buzz = () => socket.emit("buzz", team.value.id, quizID);
 
 const signIn = (e: Event) => {
   e.preventDefault();
   if (teamName.value) {
-    const team: Team = {
+    team.value = {
+      id: nanoid(5),
       name: teamName.value,
       score: 0,
       active: false,
     };
     connected.value = true;
     socket.connect();
-    socket.emit("add-team", quizID, team, "user");
+    socket.emit("add-team", quizID, team.value, "user");
   }
 };
 </script>

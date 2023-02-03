@@ -86,8 +86,8 @@ socket.on("remove-team", (teamName: string) => {
 });
 
 socket.on("buzz-win", (winningTeam) => {
-  teams.value.find((o: Team) => {
-    if (o.name === winningTeam) o.active = true;
+  teams.value.find((team: Team) => {
+    if (team.id === winningTeam.id) team.active = true;
     buzzAnswer.play();
   });
 });
@@ -133,7 +133,7 @@ socket.on("disconnect", () => {
           <a :href="URL" target="_blank">{{ URL }}</a>
         </div>
         <ul v-if="teams.length && !started" class="teams-list-preview">
-          <li v-for="team in teams" :key="team.name" class="team-preview">
+          <li v-for="team in teams" :key="team.id" class="team-preview">
             <div class="team-name-preview">{{ team.name }}</div>
           </li>
         </ul>
@@ -151,7 +151,7 @@ socket.on("disconnect", () => {
         class="teams-list"
         style="font-size: 7vw"
       >
-        <li v-for="team in teams" :key="team.name" class="team">
+        <li v-for="team in teams" :key="team.id" class="team">
           <div class="team-name" :class="{ active: team.active }">
             {{ team.name }}
           </div>

@@ -85,10 +85,10 @@ socket.on("remove-team", (teamName: string) => {
   teams.value.splice(index, 1);
 });
 
-socket.on("buzz-win", (team) => {
-  winningTeam.value = team;
-  teams.value.find((o: Team) => {
-    if (o.name === team) o.active = true;
+socket.on("buzz-win", (fastestTeam) => {
+  winningTeam.value = fastestTeam.name;
+  teams.value.find((team: Team) => {
+    if (team.id === fastestTeam.id) team.active = true;
   });
 });
 
