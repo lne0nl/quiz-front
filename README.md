@@ -1,4 +1,4 @@
-# Zeniquiz
+# ZeniQuiz (frontend)
 
 ## Project Setup
 
