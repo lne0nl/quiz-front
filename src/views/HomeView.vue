@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 import type { Team } from "@/types";
 import { useRoute } from "vue-router";
 import { nanoid } from "nanoid";
+import Button from "@/components/ButtonComponent.vue";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
@@ -102,7 +103,7 @@ const signIn = (e: Event) => {
             v-model="teamName"
             @keyup="fillTeamName"
           />
-          <button class="sign-in-button" type="submit">Valider</button>
+          <Button>Valider</Button>
         </form>
       </div>
 

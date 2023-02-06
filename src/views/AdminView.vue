@@ -142,11 +142,6 @@ socket.on("disconnect", () => {
   activeBuzz.value = false;
   router.push({ name: "admin" });
 });
-
-const test = (e: Event): void => {
-  const test = (e.target as HTMLInputElement).dataset.test;
-  console.log("test => ", test);
-};
 </script>
 
 <template>
@@ -158,8 +153,7 @@ const test = (e: Event): void => {
       autofocus
       v-model="quizName"
     />
-    <button class="quiz-name-button" type="submit">Valider</button>
-    <Button @click="test" data-test="tralala">Test</Button>
+    <Button>Valider</Button>
   </form>
 
   <div v-if="created && !started">
@@ -169,9 +163,7 @@ const test = (e: Event): void => {
       <button class="copy-paste-button" type="button" @click="copyURL">
         <CopyPasteIcon />
       </button>
-      <button class="quiz-name-button" type="button" @click="startQuiz">
-        Démarrer le quiz
-      </button>
+      <Button @click="startQuiz">Démarrer le quiz</Button>
     </div>
   </div>
 
@@ -204,20 +196,14 @@ const test = (e: Event): void => {
   <div v-if="created">
     <div class="quiz-tools">
       <div v-if="started">
-        <button class="quiz-name-button" @click="toggleBuzz(true)">
-          Activer les buzzers
-        </button>
-        <button class="quiz-name-button" @click="toggleBuzz(false)">
-          Désactiver les buzzers
-        </button>
+        <Button @click="toggleBuzz(true)">Activer les buzzers</Button>
+        <Button @click="toggleBuzz(false)">Désactiver les buzzers</Button>
       </div>
-      <button v-if="started" class="quiz-name-button" @click="toggleQRCode">
+      <Button v-if="started" @click="toggleQRCode">
         {{ showQR ? "Cacher le QR Code" : "Afficher le QR Code" }}
-      </button>
-      <button v-if="started" class="quiz-name-button" @click="toggleTeams">
-        Afficher les équipes
-      </button>
-      <button class="quiz-name-button" @click="raz">Supprimer le quiz</button>
+      </Button>
+      <Button v-if="started" @click="toggleTeams">Afficher les équipes</Button>
+      <Button @click="raz">Supprimer le quiz</Button>
     </div>
   </div>
 
@@ -275,17 +261,6 @@ const test = (e: Event): void => {
     &::-webkit-input-placeholder {
       color: rgba(255, 255, 255, 0.527);
     }
-  }
-
-  &-button {
-    width: 100%;
-    height: 50px;
-    margin-top: 20px;
-    font-size: 30px;
-    font-weight: 700;
-    background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
-    border: none;
-    border-radius: 10px;
   }
 }
 
