@@ -45,10 +45,10 @@ const fillTeamName = (e: Event) =>
 
 socket.on("quiz-started", () => (disableBuzzer.value = false));
 
-socket.on("buzz-win", (winningTeam: string) => {
+socket.on("buzz-win", (winningTeam: Team) => {
   disableBuzzer.value = true;
 
-  if (teamName.value === winningTeam) winner.value = true;
+  if (teamName.value === winningTeam.name) winner.value = true;
 });
 
 socket.on("raz-buzz", () => {
