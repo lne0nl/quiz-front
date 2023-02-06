@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Team } from "@/interfaces";
+import type { Team } from "@/types";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";

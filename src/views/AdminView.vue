@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { Team } from "@/interfaces";
+import type { Team } from "@/types";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { nanoid } from "nanoid";
 import CopyPasteIcon from "@/assets/images/copy-icon.svg?component";
 import { useRoute } from "vue-router";
 import router from "@/router";
+import Button from "@/components/ButtonComponent.vue";
 
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
@@ -141,6 +142,11 @@ socket.on("disconnect", () => {
   activeBuzz.value = false;
   router.push({ name: "admin" });
 });
+
+const test = (e: Event): void => {
+  const test = (e.target as HTMLInputElement).dataset.test;
+  console.log("test => ", test);
+};
 </script>
 
 <template>
@@ -153,6 +159,7 @@ socket.on("disconnect", () => {
       v-model="quizName"
     />
     <button class="quiz-name-button" type="submit">Valider</button>
+    <Button @click="test" data-test="tralala">Test</Button>
   </form>
 
   <div v-if="created && !started">

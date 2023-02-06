@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, type Ref } from "vue";
 import { io } from "socket.io-client";
-import type { Team } from "@/interfaces";
+import type { Team } from "@/types";
 import { useRoute } from "vue-router";
 import { nanoid } from "nanoid";
 

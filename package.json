@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "nanoid": "^4.0.0",
-    "pinia": "^2.0.28",
     "sass": "^1.57.1",
     "socket.io-client": "^4.5.4",
     "uuid": "^9.0.0",
