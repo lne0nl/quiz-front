@@ -14,5 +14,10 @@ button {
   background: linear-gradient(51.05deg, #ee2238 -57.1%, #bf1d67 156.72%);
   border: none;
   border-radius: 10px;
+
+  &:active {
+    background: linear-gradient(51.05deg, #941522 -57.1%, #6e113b 156.72%);
+    transform: scale(0.99);
+  }
 }
 </style>

@@ -196,8 +196,8 @@ socket.on("disconnect", () => {
   <div v-if="created">
     <div class="quiz-tools">
       <div v-if="started">
-        <Button @click="toggleBuzz(true)">Activer les buzzers</Button>
-        <Button @click="toggleBuzz(false)">Désactiver les buzzers</Button>
+        <Button @click="toggleBuzz(true)">Buzzers ON</Button>
+        <Button @click="toggleBuzz(false)">Buzzers OFF</Button>
       </div>
       <Button v-if="started" @click="toggleQRCode">
         {{ showQR ? "Cacher le QR Code" : "Afficher le QR Code" }}
