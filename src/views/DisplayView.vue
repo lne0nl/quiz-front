@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Team } from "@/types";
+import type { Quiz, Team } from "@/types";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
@@ -34,16 +34,16 @@ if (!quizID) {
   error.value = "Ce quiz n'existe pas";
 } else {
   socket.connect();
-  socket.emit("check-quiz", quizID);
+  socket.emit("check-quiz", quizID, true);
 }
 
-socket.on("check-quiz", (quiz) => {
+socket.on("check-quiz", (quiz: Quiz, fromDisplay: boolean) => {
   if (quiz) {
-    socket.emit("display-quiz", quizID, URL);
+    if (fromDisplay) socket.emit("display-quiz", quizID, URL);
   } else error.value = "Ce quiz n'existe pas";
 });
 
-socket.on("quiz-infos", (quiz, quizCode) => {
+socket.on("quiz-infos", (quiz: Quiz, quizCode) => {
   quizName.value = quiz.name;
   started.value = quiz.started;
   teams.value = quiz.teams;
@@ -86,7 +86,7 @@ socket.on("remove-team", (teamName: string) => {
   teams.value.splice(index, 1);
 });
 
-socket.on("buzz-win", (winningTeam) => {
+socket.on("buzz-win", (winningTeam: Team) => {
   teams.value.find((team: Team) => {
     if (team.id === winningTeam.id) team.active = true;
     buzzAnswer.play();

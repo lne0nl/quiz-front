@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Team } from "@/types";
+import type { Quiz, Team } from "@/types";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { nanoid } from "nanoid";
@@ -26,14 +26,14 @@ let activeBuzz: Ref<boolean> = ref(false);
 
 if (quizID) {
   socket.connect();
-  socket.emit("check-quiz", quizID);
+  socket.emit("check-quiz", quizID, false);
 }
 
 const origin = window.location.origin;
 const pathname = window.location.pathname;
 const URL = `${origin}${pathname}${quizID}`;
 
-socket.on("check-quiz", (quiz) => {
+socket.on("check-quiz", (quiz: Quiz) => {
   if (quiz) {
     started.value = quiz.started;
     created.value = true;
@@ -86,7 +86,7 @@ socket.on("remove-team", (teamName: string) => {
   teams.value.splice(index, 1);
 });
 
-socket.on("buzz-win", (fastestTeam) => {
+socket.on("buzz-win", (fastestTeam: Team) => {
   winningTeam.value = fastestTeam.name;
   teams.value.find((team: Team) => {
     if (team.id === fastestTeam.id) team.active = true;

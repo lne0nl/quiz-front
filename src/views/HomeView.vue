@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, type Ref } from "vue";
 import { io } from "socket.io-client";
-import type { Team } from "@/types";
+import type { Quiz, Team } from "@/types";
 import { useRoute } from "vue-router";
 import { nanoid } from "nanoid";
 import Button from "@/components/ButtonComponent.vue";
@@ -29,10 +29,10 @@ if (!quizID) {
   error.value = "Ce quiz n'existe pas";
 } else {
   socket.connect();
-  socket.emit("check-quiz", quizID);
+  socket.emit("check-quiz", quizID, false);
 }
 
-socket.on("check-quiz", (quiz) => {
+socket.on("check-quiz", (quiz: Quiz) => {
   if (!quiz) {
     error.value = "Ce quiz n'existe pas";
     socket.disconnect();

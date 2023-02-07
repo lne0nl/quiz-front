@@ -8,8 +8,11 @@ defineProps<{
 </script>
 
 <template>
-  <li v-memo="[team.active]" :class="preview ? 'team-preview' : 'team'">
-    <div :class="[preview ? '' : 'team-name', , { active: team.active }]">
+  <li :class="preview ? 'team-preview' : 'team'">
+    <div
+      v-memo="[team.active]"
+      :class="[preview ? '' : 'team-name', , { active: team.active }]"
+    >
       {{ team.name }}
     </div>
 

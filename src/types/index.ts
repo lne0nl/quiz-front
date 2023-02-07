@@ -4,3 +4,10 @@ export type Team = {
   score: number;
   active: boolean;
 };
+
+export type Quiz = {
+  id: string;
+  name: string;
+  teams: Team[];
+  started: boolean;
+};
