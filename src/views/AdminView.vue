@@ -59,7 +59,7 @@ const copyURL = () => navigator.clipboard.writeText(displayURL.value);
 
 const startQuiz = () => {
   started.value = true;
-  socket.emit("start-quiz", quizID, quizName.value);
+  socket.emit("start-quiz", quizID);
 };
 
 const toggleQRCode = () => {
