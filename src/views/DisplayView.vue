@@ -3,6 +3,7 @@ import type { Team } from "@/types";
 import { io } from "socket.io-client";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
+import TeamCard from "@/components/TeamComponent.vue";
 import buzzSound from "@/assets/sounds/buzzanswer.wav";
 import buzzGood from "@/assets/sounds/buzzgood.wav";
 import buzzBad from "@/assets/sounds/buzzbad.wav";
@@ -92,13 +93,9 @@ socket.on("buzz-win", (winningTeam) => {
   });
 });
 
-socket.on("win", () => {
-  buzzWin.play();
-});
+socket.on("win", () => buzzWin.play());
 
-socket.on("lose", () => {
-  buzzLose.play();
-});
+socket.on("lose", () => buzzLose.play());
 
 socket.on("raz-buzz", () => {
   teams.value.find((o: Team) => {
@@ -133,9 +130,12 @@ socket.on("disconnect", () => {
           <a :href="URL" target="_blank">{{ URL }}</a>
         </div>
         <ul v-if="teams.length && !started" class="teams-list-preview">
-          <li v-for="team in teams" :key="team.id" class="team-preview">
-            <div class="team-name-preview">{{ team.name }}</div>
-          </li>
+          <TeamCard
+            v-for="team in teams"
+            :key="team.id"
+            :team="team"
+            :preview="true"
+          />
         </ul>
       </div>
       <div v-if="started && showCode" class="qr-code-overlay">
@@ -151,12 +151,12 @@ socket.on("disconnect", () => {
         class="teams-list"
         style="font-size: 7vw"
       >
-        <li v-for="team in teams" :key="team.id" class="team">
-          <div class="team-name" :class="{ active: team.active }">
-            {{ team.name }}
-          </div>
-          <div class="team-score">{{ team.score }}</div>
-        </li>
+        <TeamCard
+          v-for="team in teams"
+          :key="team.id"
+          :team="team"
+          :preview="false"
+        />
       </ul>
     </div>
     <div v-if="error" class="error">
@@ -218,31 +218,6 @@ socket.on("disconnect", () => {
     padding: 0 10%;
     font-size: 40px;
   }
-}
-
-.team {
-  padding: 20px;
-
-  &-name {
-    font-weight: 700;
-    padding: 0 15px;
-    border-radius: 10px;
-  }
-
-  &-score {
-    font-size: 40px;
-    font-weight: bold;
-  }
-
-  &-preview {
-    padding: 20px;
-    font-weight: 700;
-  }
-}
-
-.active {
-  background: linear-gradient(51.05deg, #a0ee22 -57.1%, #479116 156.72%);
-  color: white;
 }
 
 .finished,
