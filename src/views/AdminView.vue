@@ -149,11 +149,11 @@ socket.on("disconnect", () => {
     <input
       type="text"
       class="quiz-name-input"
-      placeholder="Donnez un nom au quiz"
+      placeholder="Name your quiz"
       autofocus
       v-model="quizName"
     />
-    <Button>Valider</Button>
+    <Button>Create quiz</Button>
   </form>
 
   <div v-if="created && !started">
