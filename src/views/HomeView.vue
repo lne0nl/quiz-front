@@ -5,7 +5,9 @@ import type { Quiz, Team } from "@/types";
 import { useRoute } from "vue-router";
 import { nanoid } from "nanoid";
 import Button from "@/components/ButtonComponent.vue";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const socket = io(import.meta.env.VITE_BACK_URL, {
   autoConnect: false,
 });
@@ -26,7 +28,7 @@ let error: Ref<string> = ref("");
 let finished: Ref<boolean> = ref(false);
 
 if (!quizID) {
-  error.value = "Ce quiz n'existe pas";
+  error.value = t("message.quiz.missing");
 } else {
   socket.connect();
   socket.emit("check-quiz", quizID, false);
@@ -34,7 +36,7 @@ if (!quizID) {
 
 socket.on("check-quiz", (quiz: Quiz) => {
   if (!quiz) {
-    error.value = "Ce quiz n'existe pas";
+    error.value = t("message.quiz.missing");
     socket.disconnect();
   }
 });
@@ -89,31 +91,30 @@ const signIn = (e: Event) => {
       {{ error }}
     </div>
     <div v-if="finished && !error" class="finished">
-      Le quiz est terminé, merci pour votre participation !
+      {{ $t("message.quiz.over") }}
     </div>
     <div v-if="!error && !finished">
       <div v-if="!connected" class="sign-in-wrapper">
         <form @submit="signIn" class="sign-in-form">
-          <div class="sign-in-todo">Choisissez un nom d'équipe</div>
           <input
             type="text"
             class="sign-in-input"
-            placeholder="Nom d'équipe"
+            :placeholder="$t('message.user.name')"
             autofocus
             v-model="teamName"
             @keyup="fillTeamName"
           />
-          <Button>Valider</Button>
+          <Button>{{ $t("message.user.play") }}</Button>
         </form>
       </div>
 
       <div v-if="connected && !finished" class="buzz-wrapper">
-        <button
+        <buttonn
           :disabled="disableBuzzer"
           class="buzz-button"
           :class="{ 'buzz-button-winner': winner }"
           @click="buzz"
-        ></button>
+        ></buttonn>
       </div>
     </div>
   </div>

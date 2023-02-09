@@ -149,21 +149,23 @@ socket.on("disconnect", () => {
     <input
       type="text"
       class="quiz-name-input"
-      placeholder="Name your quiz"
+      :placeholder="$t('message.admin.quiz.name')"
       autofocus
       v-model="quizName"
     />
-    <Button>Create quiz</Button>
+    <Button>
+      {{ $t("message.admin.quiz.create") }}
+    </Button>
   </form>
 
   <div v-if="created && !started">
     <div class="share-display">
-      <h2>{{ quizName }} screen:</h2>
+      <h2>{{ $t("message.admin.quiz.screen", { quizName }) }}</h2>
       <a :href="displayURL" target="_blank">{{ displayURL }}</a>
       <button class="copy-paste-button" type="button" @click="copyURL">
         <CopyPasteIcon />
       </button>
-      <Button @click="startQuiz">Démarrer le quiz</Button>
+      <Button @click="startQuiz">{{ $t("message.admin.quiz.start") }}</Button>
     </div>
   </div>
 
@@ -200,10 +202,16 @@ socket.on("disconnect", () => {
         <Button @click="toggleBuzz(false)">Buzzers OFF</Button>
       </div>
       <Button v-if="started" @click="toggleQRCode">
-        {{ showQR ? "Cacher le QR Code" : "Afficher le QR Code" }}
+        {{
+          showQR
+            ? $t("message.admin.hide.code")
+            : $t("message.admin.display.code")
+        }}
       </Button>
-      <Button v-if="started" @click="toggleTeams">Afficher les équipes</Button>
-      <Button @click="raz">Supprimer le quiz</Button>
+      <Button v-if="started && teams.length" @click="toggleTeams">{{
+        $t("message.admin.display.teams")
+      }}</Button>
+      <Button @click="raz">{{ $t("message.admin.quiz.delete") }}</Button>
     </div>
   </div>
 

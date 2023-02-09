@@ -7,7 +7,9 @@ import TeamCard from "@/components/TeamComponent.vue";
 import buzzSound from "@/assets/sounds/buzzanswer.wav";
 import buzzGood from "@/assets/sounds/buzzgood.wav";
 import buzzBad from "@/assets/sounds/buzzbad.wav";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const buzzAnswer = new Audio(buzzSound);
 const buzzWin = new Audio(buzzGood);
 const buzzLose = new Audio(buzzBad);
@@ -31,7 +33,7 @@ let error: Ref<string> = ref("");
 let finished: Ref<boolean> = ref(false);
 
 if (!quizID) {
-  error.value = "Ce quiz n'existe pas";
+  error.value = t("message.quiz.missing");
 } else {
   socket.connect();
   socket.emit("check-quiz", quizID, true);
@@ -40,7 +42,7 @@ if (!quizID) {
 socket.on("check-quiz", (quiz: Quiz, fromDisplay: boolean) => {
   if (quiz) {
     if (fromDisplay) socket.emit("display-quiz", quizID, URL);
-  } else error.value = "Ce quiz n'existe pas";
+  } else error.value = t("message.quiz.missing");
 });
 
 socket.on("quiz-infos", (quiz: Quiz, quizCode) => {
@@ -120,7 +122,7 @@ socket.on("disconnect", () => {
 <template>
   <div>
     <div v-if="finished && !error" class="finished">
-      Le quiz est terminé, merci pour votre participation !
+      {{ $t("message.quiz.over") }}
     </div>
     <div v-if="!error">
       <h1 class="quiz-name">{{ quizName }}</h1>

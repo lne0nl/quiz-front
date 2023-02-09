@@ -31,6 +31,18 @@ For now, **ZeniQuiz Frontend** is hosted on **Github pages**. There is a script 
 ```
 sh deploy.sh
 ```
+___
 ## Documentation
-In order to create a quizz, get to admin page https://lne0nl.github.io/quiz-front/#/admin and choose a name for your quiz.  
+### Admin
+Admin is better with the phone.  
+In order to create a quiz, get to admin page http://localhost:5173/quiz-front/#/admin/ and choose a name for your quiz.  
+<center>
+
+![admin page][admin page]
+
+[admin page]: https://github.com/lne0nl/quiz-front/blob/main/src/assets/images/readme/admin.png?raw=true "Admin page"
+
+</center>
 When the name is validated, you'll be redirected to the admin panel :
+
+### User
