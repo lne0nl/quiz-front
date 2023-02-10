@@ -208,10 +208,16 @@ socket.on("disconnect", () => {
             : $t("message.admin.display.code")
         }}
       </Button>
-      <Button v-if="started && teams.length" @click="toggleTeams">{{
-        $t("message.admin.display.teams")
+      <Button
+        name="start-quiz"
+        v-if="started && teams.length"
+        @click="toggleTeams"
+      >
+        {{ $t("message.admin.display.teams") }}
+      </Button>
+      <Button name="delete-quiz" @click="raz">{{
+        $t("message.admin.quiz.delete")
       }}</Button>
-      <Button @click="raz">{{ $t("message.admin.quiz.delete") }}</Button>
     </div>
   </div>
 
