@@ -5,6 +5,7 @@ test.describe("Test admin part", () => {
 
   test("Create a quiz", async ({ page }) => {
     await page.goto("/#/admin");
+    await page.screenshot({ path: "screenshots/screenshot.png" });
     const input = page.locator("input.quiz-name-input");
     await expect(input).toBeVisible();
     // await input.type("Quiz");
