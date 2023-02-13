@@ -13,6 +13,7 @@ const socket = io(import.meta.env.VITE_BACK_URL, {
 });
 const route = useRoute();
 const quizID = route.params.id;
+console.log("test");
 
 let team: Ref<Team> = ref({
   id: "",
